@@ -17,33 +17,34 @@ def uat_refresh_test():
 		try:
 			func = ['daily','ma','macd','rsi']
 			df=pdr.get_data_yahoo(i,dt.datetime(2010,1,1),dt.datetime(2019,12,31))
-			df.insert(loc=0,column='ticker',value=i)
-			for x in func:
-				try:
-					if x == 'daily':
-						df.to_sql('daily_trade_data',engine,if_exists='replace',index=True)
+			config.uat_df_columns(df)
+			df.insert(0,'ticker',i)
 
-					if x == 'ma':
-						config_test.uat_ma_columns(df)
-						config_test.remove_daily(df)
-						df.to_sql('moving_averages',engine,if_exists='replace',index=True)
-						
-					if x == 'macd':
-						config_test.uat_macd_columns(df)
-						config_test.remove_daily(df)
-						df.to_sql('macd',engine,if_exists='replace',index=True)
-						
-					if x == 'rsi':
-						config_test.uat_rsi_columns(df)
-						config_test.remove_daily(df)
-						df.to_sql('rsi',engine,if_exists='replace',index=True)
-						
-					else:
-						pass
+			for x in func:
+
+				if x == 'daily':
+					df2 = df[['ticker','High','Low','Open','Close','Volume','Adj Close']]
+					df2.to_sql('daily_trade_data',engine,if_exists='append',index=True)
+
+				if x == 'ma':
+					df2 = df[['ticker','200MA','150MA','100MA','75MA','50MA','35MA','25MA','15MA','10MA']]
+					df2.to_sql('moving_averages',engine,if_exists='append',index=True)
+
+				if x == 'macd':
+					df2 = df[['ticker','MACD','Signal','MACDdiff','MACD-5D','Signal-5D','MACD-5Ddiff','MACD-10D',
+					'Signal-10D','MACD-10Ddiff']]
+					df2.to_sql('macd',engine,if_exists='append',index=True)
+
+				if x == 'rsi':
+					df2 = df[['ticker','50RSI','40RSI','30RSI','20RSI']]
+					df2.to_sql('rsi',engine,if_exists='append',index=True)
+
+				else:
+					pass
+			print(i)
 					
-				except KeyError:
-					print(x)
 		except KeyError:
 			print(f'{i} was not pulled')
 
+config.pull_SP_tickers()
 uat_refresh_test()
