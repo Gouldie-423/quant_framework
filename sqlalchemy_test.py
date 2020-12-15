@@ -19,32 +19,37 @@ def uat_refresh_test():
 			df=pdr.get_data_yahoo(i,dt.datetime(2010,1,1),dt.datetime(2019,12,31))
 			config.uat_df_columns(df)
 			df.insert(0,'ticker',i)
+			#adjusting df before importing to db
+			df = df.reset_index()
+			config.rename_df_columns(df)
+			df = df.set_index("date")
+
+			print(i)
 
 			for x in func:
 
 				if x == 'daily':
-					df2 = df[['ticker','High','Low','Open','Close','Volume','Adj Close']]
+					df2 = df[['ticker','high','low','open','close','volume','adj_close']]
 					df2.to_sql('daily_trade_data',engine,if_exists='append',index=True)
 
 				if x == 'ma':
-					df2 = df[['ticker','200MA','150MA','100MA','75MA','50MA','35MA','25MA','15MA','10MA']]
+					df2 = df[['ticker','ma200','ma150','ma100','ma75','ma50','ma35',
+					'ma25','ma15','ma10']]
 					df2.to_sql('moving_averages',engine,if_exists='append',index=True)
 
 				if x == 'macd':
-					df2 = df[['ticker','MACD','Signal','MACDdiff','MACD-5D','Signal-5D','MACD-5Ddiff','MACD-10D',
-					'Signal-10D','MACD-10Ddiff']]
+					df2 = df[['ticker','macd','signal','macd_diff','macd_5d','signal_5d',
+					'macd_5diff','macd_10d','signal_10d','macd_10diff']]
 					df2.to_sql('macd',engine,if_exists='append',index=True)
 
 				if x == 'rsi':
-					df2 = df[['ticker','50RSI','40RSI','30RSI','20RSI']]
+					df2 = df[['ticker','rsi50','rsi40','rsi30','rsi20']]
 					df2.to_sql('rsi',engine,if_exists='append',index=True)
 
 				else:
 					pass
-			print(i)
-					
+		
 		except KeyError:
 			print(f'{i} was not pulled')
 
-config.pull_SP_tickers()
 uat_refresh_test()
